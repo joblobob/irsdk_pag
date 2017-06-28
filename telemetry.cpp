@@ -31,6 +31,7 @@ irsdkCVar g_carBestLapTime("LapBestLapTime");
 irsdkCVar g_carLastLapTime("LapLastLapTime");
 
 
+// variables available in real time for each car
 irsdkCVar g_ClassPos("CarIdxClassPosition");
 irsdkCVar g_EstTime("CarIdxEstTime");
 irsdkCVar g_F2Time("CarIdxF2Time");
@@ -39,31 +40,20 @@ irsdkCVar g_LapNo("CarIdxLap");
 irsdkCVar g_lapDist("CarIdxLapDistPct");
 irsdkCVar g_OnPitRoad("CarIdxOnPitRoad");
 irsdkCVar g_CarPos("CarIdxPosition");
-irsdkCVar g_TrackSurface("CarIdxTrackSurface");
-/*irsdk_TrkLoc
-irsdk_NotInWorld
--1
-irsdk_OffTrack
-0
-irsdk_InPitStall
-1
-irsdk_AproachingPits
-2
-irsdk_OnTrack
-3*/
+irsdkCVar g_TrackSurface("CarIdxTrackSurface"); /*irsdk_TrkLoc irsdk_NotInWorld -1 irsdk_OffTrack 0 irsdk_InPitStall 1 irsdk_AproachingPits 2 irsdk_OnTrack 3*/
+
 
 Telemetry::Telemetry(QWidget *parent) :
-    QMainWindow(parent), m_isStarted(false),
+    QMainWindow(parent), m_isStarted(false), m_trackLength(-1),
     ui(new Ui::Telemetry)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     setAttribute( Qt::WA_TranslucentBackground, true );
-    setGeometry(0,0,1500,400);
+    setGeometry(0,0,1600,400);
 
-    ui->m_tblTimes->setHorizontalHeaderLabels(QStringList() << "Name" << "Pos" << "Time" << "FastestTime" << "LastTime" << "Speed" << "InPits");
-    ui->m_tblTimes->horizontalHeader()->setStyleSheet("QHeaderView::section {color: white; background-color: rgba(0,0,0,0); font-weight: bold; font-size: 14px; height: 30}");
-    ui->m_tblTimes->verticalHeader()->setStyleSheet("QHeaderView::section {color: white; background-color: rgba(0,0,0,0); font-weight: bold; font-size: 14px; width: 30}");
+    ui->m_tblTimes->setHorizontalHeaderLabels(QStringList() << "Name" << "Class Pos" << "Est Time" << "F2 Time" << "Lap %" << "Last Lap Time" << "InPits" << "Speed");
+    ui->m_tblTimes->verticalHeader()->setDefaultAlignment(Qt::AlignHCenter);
 }
 
 Telemetry::~Telemetry()
@@ -85,14 +75,33 @@ void Telemetry::on_m_btnStart_clicked()
     }
 }
 
-QString Telemetry::getSessionVar(QString name)
+QString Telemetry::getSessionVar(const QString& name)
 {
-    char szRes[50];
+    char szRes[100];
     QString res = QString();
-    if(irsdkClient::instance().getSessionStrVal(name.toLatin1(), szRes, 50) == 1) {
+    if(irsdkClient::instance().getSessionStrVal(name.toLatin1(), szRes, 100) == 1) {
         res = QString::fromLatin1(szRes);
     }
     return res;
+}
+
+QTableWidgetItem* Telemetry::newItem(const QString& name, int type)
+{
+    QTableWidgetItem* item = new QTableWidgetItem(name);
+    item->setTextAlignment(Qt::AlignCenter);
+
+    if(type == 1)   //good
+    {
+        item->setTextColor(Qt::green);
+    }
+    else if(type == 2) //best
+    {
+        item->setTextColor(Qt::magenta);
+    }
+    else
+        item->setTextColor(Qt::white);
+
+    return item;
 }
 
 void Telemetry::run()
@@ -105,7 +114,7 @@ void Telemetry::run()
     timeBeginPeriod(1);
 
     ui->m_tblTimes->setRowCount(60);
-    ui->m_tblTimes->setColumnCount(7);
+    ui->m_tblTimes->setColumnCount(8);
 
     while(m_isStarted)
     {
@@ -117,9 +126,16 @@ void Telemetry::run()
             int sessionNo = g_SessionNum.getInt();
             QString strCarIdx("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}CarIdx:");
             QString strUsername("DriverInfo:Drivers:CarIdx:{%1}UserName:");
-            QString strTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:Time:");
-            QString strFastestTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:FastestTime:");
-            QString strLastTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:LastTime:");
+          //  QString strTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:Time:");
+          //  QString strFastestTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:FastestTime:");
+         //   QString strLastTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:LastTime:");
+
+            if(m_trackLength == -1)
+            {
+                QString length = getSessionVar("WeekendInfo:TrackLength:");
+                if(!length.isEmpty())
+                    m_trackLength = length.toFloat();
+            }
 
             for(int i = 0; i < 50; i++)
             {
@@ -131,32 +147,25 @@ void Telemetry::run()
 
                 if(!idxName.isEmpty())
                 {
-                    QString time = strTime.arg(sessionNo).arg(i);
-                    QString fastesttime = strFastestTime.arg(sessionNo).arg(i);
-                    QString lasttime = strLastTime.arg(sessionNo).arg(i);
+                   // QString time = strTime.arg(sessionNo).arg(i);
+                //    QString fastesttime = strFastestTime.arg(sessionNo).arg(i);
+                //    QString lasttime = strLastTime.arg(sessionNo).arg(i);
+                    //  QString idxTime = getSessionVar(time);
+                   //  QString idxFastestTime = getSessionVar(fastesttime);
+                    // QString idxLastTime = getSessionVar(lasttime);
 
-                    //float spd = g_carSpeed.getFloat(0) * 3.6;
-                 //   if(spd > m_map[i].toFloat())
-                //        m_map.insert(i, spd);    //insert speed
+                    calculateLapTime(i, g_lapDist.getFloat(i));
 
-                    //ui->m_tblTimes->insertRow(i);
-                    ui->m_tblTimes->setItem(i, 0, new QTableWidgetItem(idxName));
-                    ui->m_tblTimes->setItem(i, 1, new QTableWidgetItem(g_ClassPos.getInt(i)));
-
-                    irsdkCVar g_lapDist("CarIdxLapDistPct");
-                    irsdkCVar g_OnPitRoad("CarIdxOnPitRoad");
-                    irsdkCVar g_CarPos("CarIdxPosition");
-
-                  //  QString idxTime = getSessionVar(time);
-                 ///  QString idxFastestTime = getSessionVar(fastesttime);
-//                    QString idxLastTime = getSessionVar(lasttime);
-
-                    ui->m_tblTimes->setItem(i, 2, new QTableWidgetItem(QString::number(g_EstTime.getFloat(i))));
-                    ui->m_tblTimes->setItem(i, 3, new QTableWidgetItem(QString::number(g_F2Time.getFloat(i))));
-                   // ui->m_tblTimes->item(i, 3)->setTextColor(Qt::magenta);
-                    ui->m_tblTimes->setItem(i, 4, new QTableWidgetItem(QString::number(g_lapDist.getFloat(i))));
-                    ui->m_tblTimes->setItem(i, 5, new QTableWidgetItem(QString::number(g_F2Time.getFloat(i))));
-                    ui->m_tblTimes->setItem(i, 6, new QTableWidgetItem(QString::number(g_OnPitRoad.getBool(i))));
+                    ui->m_tblTimes->setItem(i, 0, newItem(idxName));
+                    ui->m_tblTimes->setItem(i, 1, newItem(QString::number(g_ClassPos.getInt(i))));
+                    ui->m_tblTimes->setItem(i, 2, newItem(QString::number(g_EstTime.getFloat(i))));
+                    ui->m_tblTimes->setItem(i, 3, newItem(QString::number(g_F2Time.getFloat(i))));
+                    ui->m_tblTimes->setItem(i, 4, newItem(QString::number(m_mapDist[i])));
+                    if(m_mapLapTime[i] > 0.0)
+                        ui->m_tblTimes->setItem(i, 5, newItem(QString::number(m_mapLapTime[i])));
+                    ui->m_tblTimes->setItem(i, 6, newItem(QString::number(g_OnPitRoad.getBool(i))));
+                    if(m_mapLapSpeed[i] > 0.0)
+                        ui->m_tblTimes->setItem(i, 7, newItem(QString::number(g_OnPitRoad.getBool(i))));
                 }
             }
         }
@@ -168,4 +177,30 @@ void Telemetry::run()
     }
 
     ui->m_lblTitle->setText("Stopped!!");
+}
+
+void Telemetry::calculateLapTime(int idx, float dist)
+{
+    if(m_mapDistTimeStamp.value(idx, -1) == -1)  //first time
+    {
+        m_mapDist[idx] = dist;
+        m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
+    }
+    else
+    {
+        if(dist > m_mapDist[idx]) { //during lap
+
+            float diffDist = dist - m_mapDist[idx];
+            float diffTime = QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx];
+            float spd = (diffDist * m_trackLength) / (diffTime / 1000.0 / 60.0 / 60.0); //km\h
+            m_mapLapSpeed[idx] = spd;
+            m_mapDist[idx] = dist;
+
+        }
+        else if(dist < m_mapDist[idx]){  //new lap
+            m_mapLapTime[idx] = (QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0;
+            m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
+            m_mapDist[idx] = dist;
+        }
+    }
 }

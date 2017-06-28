@@ -14,35 +14,27 @@
    <string>Telemetry</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">QMainWindow{border:0px solid white; background-color: rgba(0,0,0,0);}</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
-     <widget class="QPushButton" name="m_btnStart">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Start</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
      <widget class="QTableWidget" name="m_tblTimes">
       <property name="font">
        <font>
-        <pointsize>15</pointsize>
+        <pointsize>14</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: rgb(0, 0, 0, 0);
-color: white;</string>
+       <string notr="true">QTableWidget{background-color: rgba(0, 0, 0, 0);
+border:0px solid white;
+color: white;}
+
+QTableCornerButton::section {border: 0px solid white; background: rbga(0,0,0,0);}
+
+QHeaderView, QHeaderView::section {color: white; background-color: rgba(0,0,0,0); font-weight: bold; font-size: 14px; height: 30; width: 30; border:0px solid white;}</string>
       </property>
       <property name="sizeAdjustPolicy">
        <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -59,11 +51,14 @@ color: white;</string>
       <property name="sortingEnabled">
        <bool>true</bool>
       </property>
+      <property name="cornerButtonEnabled">
+       <bool>false</bool>
+      </property>
       <property name="rowCount">
        <number>6</number>
       </property>
       <property name="columnCount">
-       <number>6</number>
+       <number>8</number>
       </property>
       <attribute name="horizontalHeaderVisible">
        <bool>true</bool>
@@ -80,6 +75,8 @@ color: white;</string>
       <row/>
       <row/>
       <row/>
+      <column/>
+      <column/>
       <column/>
       <column/>
       <column/>
@@ -104,6 +101,33 @@ color: white;</string>
       </property>
       <property name="text">
        <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QToolButton" name="m_btnStart">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+       </font>
+      </property>
+      <property name="text">
+       <string>Start</string>
+      </property>
+      <property name="autoRaise">
+       <bool>true</bool>
       </property>
      </widget>
     </item>

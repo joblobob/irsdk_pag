@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QMap>
+#include <QTime>
+#include <QTableWidgetItem>
 #include "../irsdk_client.h"
 
 
@@ -25,9 +27,19 @@ private:
     Ui::Telemetry *ui;
     bool m_isStarted;
 
-    QMap<int, QVariant> m_map;
+    QMap<int, float> m_mapDist;
+    QMap<int, qint64> m_mapDistTimeStamp;
+    QMap<int, float> m_mapLapTime;
+    QMap<int, float> m_mapLapSpeed;
+    QMap<int, float> m_mapLapTimeDelta1;
 
-    QString getSessionVar(QString name);
+    float m_trackLength;
+
+    QString getSessionVar(const QString& name);
+
+    QTableWidgetItem* newItem(const QString& name, int type = 0);
+
+    void calculateLapTime(int idx, float dist);
 
     void run();
 };
