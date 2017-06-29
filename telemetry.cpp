@@ -1,8 +1,7 @@
 #include "telemetry.h"
 #include "ui_telemetry.h"
 
-#include "../irsdk_client.h"
-#include "../irsdk_defines.h"
+
 
 #include <windows.h>
 
@@ -122,6 +121,8 @@ void Telemetry::run()
         {
             ui->m_lblTitle->setText("Connected!");
 
+            mapData();  //update map data
+
             QString strIdx("DriverInfo:DriverCarIdx:");
             int sessionNo = g_SessionNum.getInt();
             QString strCarIdx("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}CarIdx:");
@@ -137,35 +138,50 @@ void Telemetry::run()
                     m_trackLength = length.split(" ").first().toFloat();
             }
 
-            for(int i = 0; i < 50; i++)
+            int nbCars = 50;
+            if(ui->m_btnFriends->isChecked())
+                nbCars = 3;
+
+            for(int pos = 0; pos < nbCars; pos++)
             {
-                QString strid = strCarIdx.arg(sessionNo).arg(i);
+                QString strid = strCarIdx.arg(sessionNo).arg(pos);
                 QString idxIdx = getSessionVar(strid);
 
-                QString name = strUsername.arg(i);
+                QString name = strUsername.arg(m_mapCarDataByPos[pos].entry);
                 QString idxName = getSessionVar(name);
 
-                if(!idxName.isEmpty() && (idxName.contains("pier-antoine", Qt::CaseInsensitive) || idxName.contains("Simon Ro", Qt::CaseInsensitive) || idxName.contains("Alexandre Ca",Qt::CaseInsensitive)))
+                if(!idxName.isEmpty())
                 {
-                   // QString time = strTime.arg(sessionNo).arg(i);
-                //    QString fastesttime = strFastestTime.arg(sessionNo).arg(i);
-                //    QString lasttime = strLastTime.arg(sessionNo).arg(i);
-                    //  QString idxTime = getSessionVar(time);
-                   //  QString idxFastestTime = getSessionVar(fastesttime);
-                    // QString idxLastTime = getSessionVar(lasttime);
+                    bool ok = true;
+                    if(ui->m_btnFriends->isChecked()) {
+                        if((idxName.contains("pier-antoine", Qt::CaseInsensitive) || idxName.contains("Simon Ro", Qt::CaseInsensitive) || idxName.contains("Alexandre Ca",Qt::CaseInsensitive)))
+                            ok = false;
+                        else
+                            ok = true;
+                    }
 
-                    calculateLapTime(i, g_lapDist.getFloat(i));
+                    if(ok)
+                    {
+                       // QString time = strTime.arg(sessionNo).arg(i);
+                    //    QString fastesttime = strFastestTime.arg(sessionNo).arg(i);
+                    //    QString lasttime = strLastTime.arg(sessionNo).arg(i);
+                        //  QString idxTime = getSessionVar(time);
+                       //  QString idxFastestTime = getSessionVar(fastesttime);
+                        // QString idxLastTime = getSessionVar(lasttime);
 
-                    ui->m_tblTimes->setItem(i, 0, newItem(idxName));
-                    ui->m_tblTimes->setItem(i, 1, newItem(QString::number(g_ClassPos.getInt(i))));
-                    ui->m_tblTimes->setItem(i, 2, newItem(QString::number(g_EstTime.getFloat(i))));
-                    ui->m_tblTimes->setItem(i, 3, newItem(QString::number(g_F2Time.getFloat(i))));
-                    ui->m_tblTimes->setItem(i, 4, newItem(QString::number(m_mapDist[i])));
-                    if(m_mapLapTime[i] > 0.0)
-                        ui->m_tblTimes->setItem(i, 5, newItem(QString::number(m_mapLapTime[i])));
-                    ui->m_tblTimes->setItem(i, 6, newItem(QString::number(g_OnPitRoad.getBool(i))));
-                  //  if(m_mapLapSpeed[i] > 0.0)
-                        ui->m_tblTimes->setItem(i, 7, newItem(QString::number(m_mapFastestLapSpeed[i])));
+                        calculateLapTime(pos, m_mapCarDataByPos[pos].lapDist);
+
+                        ui->m_tblTimes->setItem(pos, 0, newItem(idxName));
+                        ui->m_tblTimes->setItem(pos, 1, newItem(QString::number(m_mapCarDataByPos[pos].ClassPos)));
+                        ui->m_tblTimes->setItem(pos, 2, newItem(QString::number(m_mapCarDataByPos[pos].EstTime)));
+                        ui->m_tblTimes->setItem(pos, 3, newItem(QString::number(m_mapCarDataByPos[pos].F2Time)));
+                        ui->m_tblTimes->setItem(pos, 4, newItem(QString::number(m_mapDistByEntry[m_mapCarDataByPos[pos].entry])));
+                        if(m_mapLapTimeByEntry[pos] > 0.0)
+                            ui->m_tblTimes->setItem(pos, 5, newItem(QString::number(m_mapLapTimeByEntry[m_mapCarDataByPos[pos].entry])));
+                        ui->m_tblTimes->setItem(pos, 6, newItem(QString::number(m_mapCarDataByPos[pos].OnPitRoad)));
+                        if(m_mapFastestLapSpeedByEntry[pos] > 0.0)
+                            ui->m_tblTimes->setItem(pos, 7, newItem(QString::number(m_mapFastestLapSpeedByEntry[m_mapCarDataByPos[pos].entry])));
+                    }
                 }
             }
         }
@@ -183,26 +199,72 @@ void Telemetry::calculateLapTime(int idx, float dist)
 {
     if(m_mapDistTimeStamp.value(idx, -1) == -1)  //first time
     {
-        m_mapDist[idx] = dist;
+        m_mapDistByEntry[idx] = dist;
         m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
+        m_mapDistSpdTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
     }
     else
     {
-        if(dist > m_mapDist[idx]) { //during lap
+        if(dist > m_mapDistByEntry[idx]) { //during lap
 
-            float diffDist = dist - m_mapDist[idx];
-            float diffTime = QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx];
+            float diffDist = dist - m_mapDistByEntry[idx];
+            float diffTime = QDateTime::currentMSecsSinceEpoch() - m_mapDistSpdTimeStamp[idx];
             float spd = (diffDist * m_trackLength) / (diffTime / 1000.0 / 60.0 / 60.0); //km\h
-            m_mapLapSpeed[idx] = spd;
-            if(spd > m_mapFastestLapSpeed[idx])
-                m_mapFastestLapSpeed[idx] = spd;
-            m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
+            if(spd > 1.0 && spd < 500.0)
+            {
+                m_mapLapSpeedByEntry[idx] = spd;
+                if(spd > m_mapFastestLapSpeedByEntry[idx])
+                    m_mapFastestLapSpeedByEntry[idx] = spd;
+            }
+            m_mapDistSpdTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
 
         }
-        else if(dist < m_mapDist[idx]){  //new lap
-            m_mapLapTime[idx] = (QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0;
+        else if(dist < m_mapDistByEntry[idx]){  //new lap
+            m_mapLapTimeByEntry[idx] = (QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0;
             m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
         }
-        m_mapDist[idx] = dist;
+        m_mapDistByEntry[idx] = dist;
     }
+}
+
+void Telemetry::mapData()
+{
+    QMap<int, carData> tmpMapByEntry;
+
+    //map first my entry position
+    for(int i = 0; i < 64; i++)
+    {
+        tmpMapByEntry[i].ClassPos = g_ClassPos.getInt(i);
+        tmpMapByEntry[i].EstTime = g_EstTime.getFloat(i);
+        tmpMapByEntry[i].F2Time = g_F2Time.getFloat(i);
+        tmpMapByEntry[i].Gear = g_Gear.getInt(i);
+        tmpMapByEntry[i].LapNo = g_LapNo.getInt(i);
+        tmpMapByEntry[i].lapDist = g_lapDist.getFloat(i);
+        tmpMapByEntry[i].OnPitRoad = g_OnPitRoad.getBool(i);
+        tmpMapByEntry[i].CarPos = g_CarPos.getInt(i);
+        tmpMapByEntry[i].TrackSurface = g_TrackSurface.getInt(i);
+        tmpMapByEntry[i].entry = i;
+    }
+
+    bool bFound = false;
+    carData tmpData;
+    //then by CarPosition
+    for(int i = 0; i < 64; i++)
+    {
+        for(int j = 0; j < 64 && !bFound; j++)
+        {
+            if(tmpMapByEntry[j].CarPos == i){
+                bFound = true;
+                m_mapCarDataByPos[i] = tmpMapByEntry[j];
+            }
+        }
+    }
+}
+
+void Telemetry::on_m_btnFriends_clicked(bool checked)
+{
+    if(checked)
+        ui->m_btnFriends->setText("Friends Only");
+    else
+        ui->m_btnFriends->setText("Display All");
 }
