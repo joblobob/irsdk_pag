@@ -130,11 +130,11 @@ void Telemetry::run()
           //  QString strFastestTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:FastestTime:");
          //   QString strLastTime("SessionInfo:Sessions:SessionNum:{%1}ResultsPositions:Position:{%2}:LastTime:");
 
-            if(m_trackLength == -1)
+            if(m_trackLength <= 0.0000000)
             {
                 QString length = getSessionVar("WeekendInfo:TrackLength:");
                 if(!length.isEmpty())
-                    m_trackLength = length.toFloat();
+                    m_trackLength = length.split(" ").first().toFloat();
             }
 
             for(int i = 0; i < 50; i++)
@@ -145,7 +145,7 @@ void Telemetry::run()
                 QString name = strUsername.arg(i);
                 QString idxName = getSessionVar(name);
 
-                if(!idxName.isEmpty())
+                if(!idxName.isEmpty() && (idxName.contains("pier-antoine", Qt::CaseInsensitive) || idxName.contains("Simon Ro", Qt::CaseInsensitive) || idxName.contains("Alexandre Ca",Qt::CaseInsensitive)))
                 {
                    // QString time = strTime.arg(sessionNo).arg(i);
                 //    QString fastesttime = strFastestTime.arg(sessionNo).arg(i);
@@ -164,8 +164,8 @@ void Telemetry::run()
                     if(m_mapLapTime[i] > 0.0)
                         ui->m_tblTimes->setItem(i, 5, newItem(QString::number(m_mapLapTime[i])));
                     ui->m_tblTimes->setItem(i, 6, newItem(QString::number(g_OnPitRoad.getBool(i))));
-                    if(m_mapLapSpeed[i] > 0.0)
-                        ui->m_tblTimes->setItem(i, 7, newItem(QString::number(g_OnPitRoad.getBool(i))));
+                  //  if(m_mapLapSpeed[i] > 0.0)
+                        ui->m_tblTimes->setItem(i, 7, newItem(QString::number(m_mapFastestLapSpeed[i])));
                 }
             }
         }
@@ -194,13 +194,15 @@ void Telemetry::calculateLapTime(int idx, float dist)
             float diffTime = QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx];
             float spd = (diffDist * m_trackLength) / (diffTime / 1000.0 / 60.0 / 60.0); //km\h
             m_mapLapSpeed[idx] = spd;
-            m_mapDist[idx] = dist;
+            if(spd > m_mapFastestLapSpeed[idx])
+                m_mapFastestLapSpeed[idx] = spd;
+            m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
 
         }
         else if(dist < m_mapDist[idx]){  //new lap
             m_mapLapTime[idx] = (QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0;
             m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
-            m_mapDist[idx] = dist;
         }
+        m_mapDist[idx] = dist;
     }
 }

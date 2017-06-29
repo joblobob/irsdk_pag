@@ -31,6 +31,7 @@ private:
     QMap<int, qint64> m_mapDistTimeStamp;
     QMap<int, float> m_mapLapTime;
     QMap<int, float> m_mapLapSpeed;
+    QMap<int, float> m_mapFastestLapSpeed;
     QMap<int, float> m_mapLapTimeDelta1;
 
     float m_trackLength;
