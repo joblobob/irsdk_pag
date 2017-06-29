@@ -24,6 +24,19 @@ struct carData {
     int CarPos;
     int TrackSurface;
     int entry;
+
+    carData(const carData& copy){
+        ClassPos = copy.ClassPos;
+        EstTime = copy.EstTime;
+        F2Time = copy.F2Time;
+        Gear = copy.Gear;
+        LapNo = copy.LapNo;
+        lapDist = copy.lapDist;
+        OnPitRoad = copy.OnPitRoad;
+        CarPos = copy.CarPos;
+        TrackSurface = copy.TrackSurface;
+        entry = copy.entry;
+    }
 };
 
 class Telemetry : public QMainWindow
