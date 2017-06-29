@@ -24,7 +24,18 @@ struct carData {
     int CarPos;
     int TrackSurface;
     int entry;
-
+    carData(){
+        ClassPos = -1;
+        EstTime = 0.0;
+        F2Time = 0.0;
+        Gear = 0;
+        LapNo = 0;
+        lapDist = 0.0;
+        OnPitRoad = true;
+        CarPos = 0;
+        TrackSurface = 0;
+        entry = 0;
+    }
     carData(const carData& copy){
         ClassPos = copy.ClassPos;
         EstTime = copy.EstTime;

@@ -97,6 +97,10 @@ QTableWidgetItem* Telemetry::newItem(const QString& name, int type)
     {
         item->setTextColor(Qt::magenta);
     }
+    else if(type == 3) //pit
+    {
+        item->setTextColor(Qt::blue);
+    }
     else
         item->setTextColor(Qt::white);
 
@@ -138,11 +142,8 @@ void Telemetry::run()
                     m_trackLength = length.split(" ").first().toFloat();
             }
 
-            int nbCars = 50;
-            if(ui->m_btnFriends->isChecked())
-                nbCars = 3;
 
-            for(int pos = 0; pos < nbCars; pos++)
+            for(int pos = 0; pos < 60; pos++)
             {
                 QString strid = strCarIdx.arg(sessionNo).arg(pos);
                 QString idxIdx = getSessionVar(strid);
@@ -155,13 +156,14 @@ void Telemetry::run()
                     bool ok = true;
                     if(ui->m_btnFriends->isChecked()) {
                         if((idxName.contains("pier-antoine", Qt::CaseInsensitive) || idxName.contains("Simon Ro", Qt::CaseInsensitive) || idxName.contains("Alexandre Ca",Qt::CaseInsensitive)))
-                            ok = false;
-                        else
                             ok = true;
+                        else
+                            ok = false;
                     }
 
                     if(ok)
                     {
+                        ui->m_tblTimes->showRow(pos);
                        // QString time = strTime.arg(sessionNo).arg(i);
                     //    QString fastesttime = strFastestTime.arg(sessionNo).arg(i);
                     //    QString lasttime = strLastTime.arg(sessionNo).arg(i);
@@ -170,18 +172,20 @@ void Telemetry::run()
                         // QString idxLastTime = getSessionVar(lasttime);
 
                         calculateLapTime(pos, m_mapCarDataByPos[pos].lapDist);
-
-                        ui->m_tblTimes->setItem(pos, 0, newItem(idxName));
-                        ui->m_tblTimes->setItem(pos, 1, newItem(QString::number(m_mapCarDataByPos[pos].ClassPos)));
-                        ui->m_tblTimes->setItem(pos, 2, newItem(QString::number(m_mapCarDataByPos[pos].EstTime)));
-                        ui->m_tblTimes->setItem(pos, 3, newItem(QString::number(m_mapCarDataByPos[pos].F2Time)));
-                        ui->m_tblTimes->setItem(pos, 4, newItem(QString::number(m_mapDistByEntry[m_mapCarDataByPos[pos].entry])));
+                        int type = (m_mapCarDataByPos[pos].OnPitRoad == true ? 3 : 0);
+                        ui->m_tblTimes->setItem(pos, 0, newItem(idxName, type));
+                        ui->m_tblTimes->setItem(pos, 1, newItem(QString::number(m_mapCarDataByPos[pos].ClassPos), type));
+                        ui->m_tblTimes->setItem(pos, 2, newItem(QString::number(m_mapCarDataByPos[pos].EstTime), type));
+                        ui->m_tblTimes->setItem(pos, 3, newItem(QString::number(m_mapCarDataByPos[pos].F2Time), type));
+                        ui->m_tblTimes->setItem(pos, 4, newItem(QString::number(m_mapDistByEntry[m_mapCarDataByPos[pos].entry]), type));
                         if(m_mapLapTimeByEntry[pos] > 0.0)
-                            ui->m_tblTimes->setItem(pos, 5, newItem(QString::number(m_mapLapTimeByEntry[m_mapCarDataByPos[pos].entry])));
-                        ui->m_tblTimes->setItem(pos, 6, newItem(QString::number(m_mapCarDataByPos[pos].OnPitRoad)));
+                            ui->m_tblTimes->setItem(pos, 5, newItem(QString::number(m_mapLapTimeByEntry[m_mapCarDataByPos[pos].entry]), type));
+                        ui->m_tblTimes->setItem(pos, 6, newItem(QString::number(m_mapCarDataByPos[pos].OnPitRoad), type));
                         if(m_mapFastestLapSpeedByEntry[pos] > 0.0)
-                            ui->m_tblTimes->setItem(pos, 7, newItem(QString::number(m_mapFastestLapSpeedByEntry[m_mapCarDataByPos[pos].entry])));
+                            ui->m_tblTimes->setItem(pos, 7, newItem(QString::number(m_mapFastestLapSpeedByEntry[m_mapCarDataByPos[pos].entry]), type));
                     }
+                    else
+                        ui->m_tblTimes->hideRow(pos);
                 }
             }
         }
@@ -251,13 +255,17 @@ void Telemetry::mapData()
     //then by CarPosition
     for(int i = 0; i < 64; i++)
     {
+        bFound = false;
         for(int j = 0; j < 64 && !bFound; j++)
         {
             if(tmpMapByEntry[j].CarPos == i){
                 bFound = true;
                 m_mapCarDataByPos[i] = tmpMapByEntry[j];
             }
+
         }
+        if(bFound == false)
+            m_mapCarDataByPos[i] = tmpMapByEntry[i];
     }
 }
 
