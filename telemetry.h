@@ -78,6 +78,8 @@ private:
     QMap<int, float> m_mapLapSpeedByEntry;
     QMap<int, float> m_mapFastestLapSpeedByEntry;
     QMap<int, float> m_mapLapTimeDelta1;
+    QMap<int, float> m_mapLapTimeDelta2;
+    QMap<int, float> m_mapLapTimeDelta3;
 
     //maps by pos
     QMap<int, int> m_mapLapTimeByPos;

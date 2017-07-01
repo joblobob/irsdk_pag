@@ -51,7 +51,7 @@ Telemetry::Telemetry(QWidget *parent) :
     setAttribute( Qt::WA_TranslucentBackground, true );
     setGeometry(0,0,1600,400);
 
-    ui->m_tblTimes->setHorizontalHeaderLabels(QStringList() << "Name" << "Class Pos" << "Est Time" << "F2 Time" << "Lap %" << "Last Lap Time" << "InPits" << "Speed");
+    ui->m_tblTimes->setHorizontalHeaderLabels(QStringList() << "Name" << "Class Pos" << "Split 1" << "Split 2" << "Split 3" << "Last Lap Time" << "InPits" << "Speed");
     ui->m_tblTimes->verticalHeader()->setDefaultAlignment(Qt::AlignHCenter);
 }
 
@@ -171,18 +171,20 @@ void Telemetry::run()
                        //  QString idxFastestTime = getSessionVar(fastesttime);
                         // QString idxLastTime = getSessionVar(lasttime);
 
-                        calculateLapTime(pos, m_mapCarDataByPos[pos].lapDist);
+                        calculateLapTime(m_mapCarDataByPos[pos].entry, m_mapCarDataByPos[pos].lapDist);
                         int type = (m_mapCarDataByPos[pos].OnPitRoad == true ? 3 : 0);
                         ui->m_tblTimes->setItem(pos, 0, newItem(idxName, type));
-                        ui->m_tblTimes->setItem(pos, 1, newItem(QString::number(m_mapCarDataByPos[pos].ClassPos), type));
-                        ui->m_tblTimes->setItem(pos, 2, newItem(QString::number(m_mapCarDataByPos[pos].EstTime), type));
-                        ui->m_tblTimes->setItem(pos, 3, newItem(QString::number(m_mapCarDataByPos[pos].F2Time), type));
-                        ui->m_tblTimes->setItem(pos, 4, newItem(QString::number(m_mapDistByEntry[m_mapCarDataByPos[pos].entry]), type));
+                        ui->m_tblTimes->setItem(pos, 1, newItem(QString::number(m_mapCarDataByPos[pos].ClassPos, 10, 2), type));
+                        ui->m_tblTimes->setItem(pos, 2, newItem(QString::number(m_mapLapTimeDelta1[m_mapCarDataByPos[pos].entry], 10, 2), type));
+                        ui->m_tblTimes->setItem(pos, 3, newItem(QString::number(m_mapLapTimeDelta2[m_mapCarDataByPos[pos].entry], 10, 2), type));
+                        ui->m_tblTimes->setItem(pos, 4, newItem(QString::number(m_mapLapTimeDelta3[m_mapCarDataByPos[pos].entry], 10, 2), type));
+
                         if(m_mapLapTimeByEntry[pos] > 0.0)
-                            ui->m_tblTimes->setItem(pos, 5, newItem(QString::number(m_mapLapTimeByEntry[m_mapCarDataByPos[pos].entry]), type));
-                        ui->m_tblTimes->setItem(pos, 6, newItem(QString::number(m_mapCarDataByPos[pos].OnPitRoad), type));
+                            ui->m_tblTimes->setItem(pos, 5, newItem(QString::number(m_mapLapTimeByEntry[m_mapCarDataByPos[pos].entry], 10, 2), type));
+
+                        ui->m_tblTimes->setItem(pos, 6, newItem(QString::number(m_mapCarDataByPos[pos].OnPitRoad, 10, 2), type));
                         if(m_mapFastestLapSpeedByEntry[pos] > 0.0)
-                            ui->m_tblTimes->setItem(pos, 7, newItem(QString::number(m_mapFastestLapSpeedByEntry[m_mapCarDataByPos[pos].entry]), type));
+                            ui->m_tblTimes->setItem(pos, 7, newItem(QString::number(m_mapFastestLapSpeedByEntry[m_mapCarDataByPos[pos].entry], 10, 2), type));
                     }
                     else
                         ui->m_tblTimes->hideRow(pos);
@@ -228,6 +230,20 @@ void Telemetry::calculateLapTime(int idx, float dist)
             m_mapDistTimeStamp[idx] = QDateTime::currentMSecsSinceEpoch();
         }
         m_mapDistByEntry[idx] = dist;
+
+        //split calculation
+        if(dist < 0.33)
+        {
+            m_mapLapTimeDelta1[idx] = (QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0;
+        }
+        else if(dist > 0.33 && dist < 0.66)
+        {
+            m_mapLapTimeDelta2[idx] = ((QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0) - m_mapLapTimeDelta1[idx];
+        }
+        else if(dist > 0.66)
+        {
+            m_mapLapTimeDelta3[idx] = ((QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0) - (m_mapLapTimeDelta1[idx] + m_mapLapTimeDelta2[idx]);
+        }
     }
 }
 

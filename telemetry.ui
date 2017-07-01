@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1007</width>
-    <height>394</height>
+    <width>1170</width>
+    <height>753</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -115,13 +115,34 @@ background-color:rgba(0,0,0,0);
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">QTableWidget{background-color: rgba(0, 0, 0, 0);
+       <string notr="true">QTableWidget{
+background-color: rgba(0, 0, 0, 0);
 border:0px solid white;
 color: white;}
 
-QTableCornerButton::section {border: 0px solid white; background: rbga(0,0,0,0);}
+QTableCornerButton::section {
+border: 0px solid white; 
+background: rbga(0,0,0,0);
+}
 
-QHeaderView, QHeaderView::section {color: white; background-color: rgba(0,0,0,0); font-weight: bold; font-size: 14px; height: 30; width: 30; border:0px solid white;}</string>
+QHeaderView, QHeaderView::section {
+color: white;
+background-color: rgba(0,0,0,0); 
+font-weight: bold; 
+font-size: 14px;
+height: 30; 
+width: 30; 
+border:0px solid white;}
+
+QScrollBar::vertical {
+background-color:rgba(0,0,0,0);
+}</string>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
       <property name="sizeAdjustPolicy">
        <enum>QAbstractScrollArea::AdjustToContents</enum>
