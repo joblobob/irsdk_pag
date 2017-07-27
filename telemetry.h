@@ -5,6 +5,9 @@
 #include <QMap>
 #include <QTime>
 #include <QTableWidgetItem>
+#include <QGraphicsScene>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsPathItem>
 #include "../irsdk_client.h"
 #include "../irsdk_defines.h"
 
@@ -72,14 +75,24 @@ private:
     QMap<int, qint64> m_mapDistSpdTimeStamp;
     QMap<int, qint64> m_mapDistTimeStamp;
 
+    union lapTime{float currentTime; float previousTime;};
+
     //maps by entrys
     QMap<int, float> m_mapDistByEntry;
-    QMap<int, float> m_mapLapTimeByEntry;
+    QMap<int, lapTime> m_mapLapTimeByEntry;
+    QMap<int, int> m_mapLapTimeType;
+    QMap<int, float> m_mapLapBestTimeByEntry;
     QMap<int, float> m_mapLapSpeedByEntry;
     QMap<int, float> m_mapFastestLapSpeedByEntry;
-    QMap<int, float> m_mapLapTimeDelta1;
-    QMap<int, float> m_mapLapTimeDelta2;
-    QMap<int, float> m_mapLapTimeDelta3;
+    QMap<int, float> m_mapLapTimeBestDelta1;
+    QMap<int, float> m_mapLapTimeBestDelta2;
+    QMap<int, float> m_mapLapTimeBestDelta3;
+    QMap<int, lapTime> m_mapLapTimeDelta1;
+    QMap<int, lapTime> m_mapLapTimeDelta2;
+    QMap<int, lapTime> m_mapLapTimeDelta3;
+    QMap<int, int> m_mapLapTimeDeltaType1;
+    QMap<int, int> m_mapLapTimeDeltaType2;
+    QMap<int, int> m_mapLapTimeDeltaType3;
 
     //maps by pos
     QMap<int, int> m_mapLapTimeByPos;
@@ -88,12 +101,23 @@ private:
 
     QString getSessionVar(const QString& name);
 
-    QTableWidgetItem* newItem(const QString& name, int type = 0);
+    QTableWidgetItem* newItem(int row, int column, const QString& name, int type = 0, bool isFriend = false);
 
     void calculateLapTime(int idx, float dist);
     void mapData();
+    //double getX(double lon, int width);
+    //double getY(double lat, int height, int width);
+    QGraphicsScene* m_scene;
+    QGraphicsEllipseItem* m_pag;
+    bool m_isPathClosed;
+    QMap<int, QGraphicsEllipseItem*> m_mapCarEllipse;
+
+    QGraphicsPathItem* m_trackLine;
+    QPainterPath m_trackPath;
 
     void run();
+
+    void addCarToPainter(int pos);
 };
 
 #endif // TELEMETRY_H

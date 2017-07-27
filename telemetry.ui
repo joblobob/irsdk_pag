@@ -37,36 +37,6 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
-     <widget class="QToolButton" name="m_btnStart">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-       </font>
-      </property>
-      <property name="cursor">
-       <cursorShape>PointingHandCursor</cursorShape>
-      </property>
-      <property name="text">
-       <string>Start</string>
-      </property>
-      <property name="autoRaise">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
     <item row="2" column="1">
      <widget class="QToolButton" name="m_btnFriends">
       <property name="minimumSize">
@@ -99,6 +69,36 @@ background-color:rgba(0,0,0,0);
       </property>
       <property name="checkable">
        <bool>true</bool>
+      </property>
+      <property name="autoRaise">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QToolButton" name="m_btnStart">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+       </font>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="text">
+       <string>Start</string>
       </property>
       <property name="autoRaise">
        <bool>true</bool>
@@ -191,6 +191,19 @@ background-color:rgba(0,0,0,0);
       <column/>
       <column/>
       <column/>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="3">
+     <widget class="QGraphicsView" name="m_graph">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>400</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QGraphicsView{border:0px solid white; background-color: rgba(0,0,0,0);}</string>
+      </property>
      </widget>
     </item>
    </layout>
