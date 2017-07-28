@@ -110,6 +110,8 @@ private:
     QGraphicsScene* m_scene;
     QGraphicsEllipseItem* m_pag;
     bool m_isPathClosed;
+    bool m_isFirstLap;
+    int m_firstLapNo;
     QMap<int, QGraphicsEllipseItem*> m_mapCarEllipse;
 
     QGraphicsPathItem* m_trackLine;

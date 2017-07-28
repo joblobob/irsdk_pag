@@ -56,14 +56,19 @@ Telemetry::Telemetry(QWidget *parent) :
     ui->m_tblTimes->setHorizontalHeaderLabels(QStringList() << "Name"  << "Class Pos" << "Split 1" << "Split 2" << "Split 3" << "Last Lap Time" << "Speed");
     ui->m_tblTimes->verticalHeader()->setDefaultAlignment(Qt::AlignHCenter);
 
-#if USE_PLOT==1
 
+
+#if USE_PLOT==1
+    m_isFirstLap = false;
+    m_firstLapNo = 0;
     m_scene = new QGraphicsScene();
+    for(int i =0; i < 40; i++)
+        m_mapCarEllipse[i] = NULL;
 
     m_pag = new QGraphicsEllipseItem(QRect(0,0,120,120));
     m_pag->setPen(QPen(Qt::red));
     m_pag->setBrush(QBrush(Qt::green));
-    m_scene->addItem(m_pag);
+
 
     m_trackLine = new QGraphicsPathItem();
 
@@ -71,6 +76,7 @@ Telemetry::Telemetry(QWidget *parent) :
     //m_trackLine->setBrush(QBrush(Qt::gray));
     m_trackLine->setPath(m_trackPath);
     m_scene->addItem(m_trackLine);
+    m_scene->addItem(m_pag);
     ui->m_graph->setScene(m_scene);
 #endif
 }
@@ -78,14 +84,6 @@ Telemetry::Telemetry(QWidget *parent) :
 Telemetry::~Telemetry()
 {
     delete ui;
-}
-
-void Telemetry::addCarToPainter(int pos)
-{
-    QGraphicsEllipseItem* item = new QGraphicsEllipseItem(QRect(0,0,120,120));
-    item->setPen(QPen(Qt::red));
-    item->setBrush(QBrush(Qt::darkCyan));
-    m_mapCarEllipse[pos] = item;
 }
 
 void Telemetry::on_m_btnStart_clicked()
@@ -173,6 +171,7 @@ void Telemetry::run()
     int type = 0;
     int lapNo = 0;
     m_isPathClosed = false;
+    m_firstLapNo =0 ;
 
     while(m_isStarted)
     {
@@ -184,6 +183,15 @@ void Telemetry::run()
 
             sessionNo = g_SessionNum.getInt();
             lapNo = g_carLapNo.getInt();
+
+            if(m_firstLapNo == 0) {
+                m_firstLapNo = lapNo;
+            }
+
+            if(lapNo == m_firstLapNo+1)
+                m_isFirstLap = true;
+            else if(lapNo == m_firstLapNo+2)
+                m_isFirstLap = false;
 
             if(m_trackLength <= 0.0000000)
             {
@@ -229,7 +237,7 @@ void Telemetry::run()
                             x = m_pag->x() + (dx);
                             y = m_pag->y() + (dy);
 
-                            if(lapNo == 1 && m_isPathClosed == false)
+                            if(/*m_isPathClosed == false &&*/ m_isFirstLap == true)
                             {
                                 m_trackPath.lineTo(m_pag->pos());
                                 m_trackLine->setPath(m_trackPath);
@@ -238,7 +246,7 @@ void Telemetry::run()
                                // m_pag->setRect(x,y, ui->m_graph->scene()->width() * 0.05, ui->m_graph->scene()->height() * 0.05);
                                 m_pag->setPos(x, y);
                             }
-                            else if(lapNo == 2 && m_isPathClosed == false)
+                            else if(m_isPathClosed == false)
                             {
                                 m_trackPath.closeSubpath();
                                 m_trackLine->setPath(m_trackPath);
@@ -246,18 +254,31 @@ void Telemetry::run()
                             }
                             else
                             {
+                                m_pag->setPen(QPen(QBrush(Qt::green), ui->m_graph->scene()->width() * 0.10, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
                                 m_pag->setPos(m_trackPath.pointAtPercent(m_mapCarDataByPos[pos].lapDist));
-                                m_trackLine->setPath(m_trackPath);
+                                m_pag->setRect(0, 0, ui->m_graph->scene()->width() * 0.08, ui->m_graph->scene()->width() * 0.08);
+                                //m_trackLine->setPath(m_trackPath);
                             }
 
                             ui->m_graph->fitInView( m_scene->sceneRect(), Qt::KeepAspectRatio );
+                        }
+                        else if(idxName.contains("alexandre canu", Qt::CaseInsensitive) || idxName.contains("simon robi", Qt::CaseInsensitive))
+                        {
+                            if(m_isPathClosed == true) {
+                                m_mapCarEllipse[pos]->setPen(QPen(Qt::yellow, ui->m_graph->scene()->width() * 0.10, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
+
+                                m_mapCarEllipse[pos]->setRect(0, 0, ui->m_graph->scene()->width() * 0.08, ui->m_graph->scene()->width() * 0.08);
+                            }
                         }
                         else
                         {
                             if(m_isPathClosed == true) {
                                 if(m_mapCarEllipse[pos] == NULL)
                                     addCarToPainter(pos);
+                                m_mapCarEllipse[pos]->setPen(QPen(Qt::blue, ui->m_graph->scene()->width() * 0.10, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
                                 m_mapCarEllipse[pos]->setPos(m_trackPath.pointAtPercent(m_mapCarDataByPos[pos].lapDist));
+                                m_mapCarEllipse[pos]->setRect(0, 0, ui->m_graph->scene()->width() * 0.08, ui->m_graph->scene()->width() * 0.08);
+
                             }
                         }
 #endif
@@ -286,6 +307,15 @@ void Telemetry::run()
     ui->m_lblTitle->setText("Stopped!!");
 }
 
+void Telemetry::addCarToPainter(int pos)
+{
+    QGraphicsEllipseItem* item = new QGraphicsEllipseItem(QRect(0,0,250,250));
+    item->setPen(QPen(Qt::red));
+    item->setBrush(QBrush(Qt::darkCyan));
+    m_mapCarEllipse[pos] = item;
+    m_scene->addItem(m_mapCarEllipse[pos]);
+}
+
 void Telemetry::calculateLapTime(int idx, float dist)
 {
     if(m_mapDistTimeStamp.value(idx, -1) == -1)  //first time
@@ -303,7 +333,6 @@ void Telemetry::calculateLapTime(int idx, float dist)
     else
     {
         if(dist > m_mapDistByEntry[idx]) { //during lap
-
             float diffDist = dist - m_mapDistByEntry[idx];
             float diffTime = QDateTime::currentMSecsSinceEpoch() - m_mapDistSpdTimeStamp[idx];
             float spd = (double)(diffDist * m_trackLength) / (double)(diffTime / 1000.0 / 60.0 / 60.0); //km\h
@@ -317,6 +346,7 @@ void Telemetry::calculateLapTime(int idx, float dist)
 
         }
         else if(dist < m_mapDistByEntry[idx]){  //new lap
+
             m_mapLapTimeByEntry[idx].previousTime = m_mapLapTimeByEntry[idx].currentTime;
             m_mapLapTimeByEntry[idx].currentTime = (QDateTime::currentMSecsSinceEpoch() - m_mapDistTimeStamp[idx]) / 1000.0;
 
