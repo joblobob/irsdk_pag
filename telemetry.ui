@@ -14,10 +14,27 @@
    <string>Telemetry</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow{border:0px solid white; background-color: rgba(0,0,0,0);}</string>
+   <string notr="true">QMainWindow{border:2px solid rgba(0,0,0,40); background-color: rgba(0,0,0,0);}</string>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true">#centralWidget{
+border:2px solid rgba(255,255,255,40);
+}</string>
+   </property>
    <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item row="0" column="0">
      <widget class="QLabel" name="m_lblTitle">
       <property name="font">
@@ -119,6 +136,10 @@ background-color:rgba(0,0,0,0);
 background-color: rgba(0, 0, 0, 0);
 border:0px solid white;
 color: white;}
+QTableWidget::item{
+background-color: rgba(0, 0, 0, 0);
+border-bottom:1px solid rgba(255,255,255,50);
+}
 
 QTableCornerButton::section {
 border: 0px solid white; 
@@ -132,10 +153,14 @@ font-weight: bold;
 font-size: 14px;
 height: 30; 
 width: 30; 
-border:0px solid white;}
+border:1px solid rgba(255,255,255,25);}
 
 QScrollBar::vertical {
 background-color:rgba(0,0,0,0);
+}
+
+QHeaderView::item{
+border-bottom: 1px solid rgba(255,255,255,40);
 }</string>
       </property>
       <property name="verticalScrollBarPolicy">
@@ -202,7 +227,7 @@ background-color:rgba(0,0,0,0);
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">QGraphicsView{border:0px solid white; background-color: rgba(0,0,0,0);}</string>
+       <string notr="true">QGraphicsView{border:1px solid rgba(255,255,255,40); background-color: rgba(0,0,0,0);}</string>
       </property>
      </widget>
     </item>

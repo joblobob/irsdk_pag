@@ -109,6 +109,7 @@ private:
     //double getY(double lat, int height, int width);
     QGraphicsScene* m_scene;
     QGraphicsEllipseItem* m_pag;
+    QGraphicsTextItem* m_pagText;
     bool m_isPathClosed;
     bool m_isFirstLap;
     int m_firstLapNo;
