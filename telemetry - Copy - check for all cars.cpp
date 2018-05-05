@@ -194,7 +194,7 @@ void Telemetry::run()
             lapNo = g_carLapNo.getInt();
 
             //first lap
-            if(m_firstLapNo == 5) {
+            if(m_firstLapNo == 0) {
                 m_firstLapNo = lapNo;
             }
 
@@ -210,33 +210,121 @@ void Telemetry::run()
 
             ok = true;
             isFriend = false;
-
-            foreach(const carData& aCarData, m_mapTeamCarDataByPos.values())
+            for(int pos = 0; pos < 30; pos++)
             {
-                QString curDriverName = m_mapTeamCarDataByPos.key(aCarData);
-                if(aCarData.ClassPos != -1)
+                if(m_mapCarDataByPos[pos].ClassPos != -1)
                 {
-                    if(aCarData.TrackSurface != -1)
+                    if(m_mapCarDataByPos[pos].TrackSurface != -1)
                     {
-                        if(curDriverName.contains("Giguère", Qt::CaseInsensitive))
+                        strid = strCarIdx.arg(sessionNo).arg(pos);
+                        idxIdx = getSessionVar(strid);
+
+                        name = strUsername.arg(m_mapCarDataByPos[pos].entry);
+                        idxName = getSessionVar(name);
+
+                        if(!idxName.isEmpty())
                         {
-                            drawPAGDriver(aCarData);
+                            ok = true;
+                            isFriend = false;
+                            if(ui->m_btnFriends->isChecked()) {
+                                if((idxName.contains("pier-antoine", Qt::CaseInsensitive) || idxName.contains("Schaffner", Qt::CaseInsensitive) || idxName.contains("Alexandre Ca",Qt::CaseInsensitive) || idxName.contains("Nicolas Lalande",Qt::CaseInsensitive) || idxName.contains("Ouelette",Qt::CaseInsensitive) || idxName.contains("cyr",Qt::CaseInsensitive))) {
+                                    ok = true;
+                                    isFriend = true;
+                                }
+                                else
+                                    ok = false;
+                            }
+
+                            if(ok)
+                            {
+                                if(ui->m_tblTimes->isRowHidden(pos))
+                                    ui->m_tblTimes->showRow(pos);
+
+                                //calculateLapTime(m_mapCarDataByPos[pos].entry, m_mapCarDataByPos[pos].lapDist);
+        #if USE_PLOT==1
+                                if(idxName.contains("pier-antoine", Qt::CaseInsensitive))
+                                {
+                                    yaw = g_carYaw.getFloat();
+                                    dx = (g_carVelX.getFloat()) * sin(yaw);
+                                    dy = (g_carVelY.getFloat()) * cos(yaw);
+                                    x = m_pag->x() + (dx);
+                                    y = m_pag->y() + (dy);
+
+                                    if(m_isFirstLap == true)  //dessin
+                                    {
+                                        if(QFile::exists(m_trackName + "_res.txt") == true) {
+                                            QFile aFile(m_trackName + "_res.txt");
+                                            QDataStream aStream(&aFile);
+                                            aStream >> m_trackPath;
+                                            m_trackLine->setPath(m_trackPath);
+                                            m_pag->setPos(x, y);
+                                            m_isFirstLap = false;
+                                        }
+                                        else
+                                        {
+                                            m_trackPath.lineTo(m_pag->pos());
+                                            m_trackLine->setPath(m_trackPath);
+
+                                            m_trackLine->setPen(QPen(Qt::gray, ui->m_graph->scene()->width() * 0.05));
+                                           // m_pag->setRect(x,y, ui->m_graph->scene()->width() * 0.05, ui->m_graph->scene()->height() * 0.05);
+                                            m_pag->setPos(x, y);
+                                        }
+                                    }
+                                    else if(m_isPathClosed == false)
+                                    {
+                                        m_trackPath.closeSubpath();
+                                        m_trackLine->setPath(m_trackPath);
+                                        m_isPathClosed = true;
+                                        ui->m_graph->fitInView( m_scene->sceneRect(), Qt::KeepAspectRatio );
+
+                                        if(QFile::exists(m_trackName + "_res.txt") == false) {
+                                            QFile aFile(m_trackName + "_res.txt");
+                                            QDataStream aStream(&aFile);
+                                            aStream << m_trackPath;
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        m_pag->setPen(QPen(QBrush(Qt::green), ui->m_graph->scene()->width() * 0.06, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
+                                        m_pag->setPos(m_trackPath.pointAtPercent(m_mapCarDataByPos[pos].lapDist));
+                                        m_pag->setRect(0, 0, ui->m_graph->scene()->width() * 0.06, ui->m_graph->scene()->width() * 0.06);
+                                        m_pagText->setPlainText(QString::number(pos));
+                                    }
+
+
+                                }
+                                else
+                                {
+
+                                    if(m_isPathClosed == true) {
+                                        if(m_mapCarEllipse[pos] == NULL)
+                                            addCarToPainter(pos);
+
+                                        Qt::GlobalColor color = Qt::blue;
+                                        if(isFriend == true)
+                                            color = Qt::yellow;
+                                        m_mapCarEllipse[pos]->setPen(QPen(color, ui->m_graph->scene()->width() * 0.06, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
+                                        m_mapCarEllipse[pos]->setPos(m_trackPath.pointAtPercent(m_mapCarDataByPos[pos].lapDist));
+                                        m_mapCarEllipse[pos]->setRect(0, 0, ui->m_graph->scene()->width() * 0.06, ui->m_graph->scene()->width() * 0.06);
+                                    }
+                                }
+        #endif
+                                type = (m_mapCarDataByPos[pos].OnPitRoad == true ? 3 : 0);
+
+                                ui->m_tblTimes->setItem(pos, 0, newItem(pos, 0,idxName, type));
+                                ui->m_tblTimes->setItem(pos, 1, newItem(pos, 1,QString::number(m_mapCarDataByPos[pos].ClassPos), type));
+                                //ui->m_tblTimes->setItem(pos, 2, newItem(pos, 2,QString::number(m_mapLapTimeDelta1[m_mapCarDataByPos[pos].entry].currentTime, 10, 1), m_mapLapTimeDeltaType1[m_mapCarDataByPos[pos].entry]));
+                               // ui->m_tblTimes->setItem(pos, 3, newItem(pos, 3,QString::number(m_mapLapTimeDelta2[m_mapCarDataByPos[pos].entry].currentTime, 10, 1), m_mapLapTimeDeltaType2[m_mapCarDataByPos[pos].entry]));
+                               // ui->m_tblTimes->setItem(pos, 4, newItem(pos, 4,QString::number(m_mapLapTimeDelta3[m_mapCarDataByPos[pos].entry].currentTime, 10, 1), m_mapLapTimeDeltaType3[m_mapCarDataByPos[pos].entry]));
+                               // ui->m_tblTimes->setItem(pos, 5, newItem(pos, 5,QString::number(m_mapLapTimeByEntry[m_mapCarDataByPos[pos].entry].currentTime, 10, 2), m_mapLapTimeType[m_mapCarDataByPos[pos].entry]));
+                                ui->m_tblTimes->setItem(pos, 5, newItem(pos, 5,QString::number(m_mapCarDataByPos[pos].EstTime), type));
+                                //ui->m_tblTimes->setItem(pos, 6, newItem(pos, 6,QString::number(m_mapFastestLapSpeedByEntry[m_mapCarDataByPos[pos].entry], 10, 2), type));
+
+                            }
+                            else
+                                ui->m_tblTimes->hideRow(pos);
                         }
-                        else
-                        {
-                            drawOtherDrivers(curDriverName, aCarData);
-                        }
-
-                        int pos = aCarData.CarPos-1;
-                  //      if(ui->m_tblTimes->isRowHidden(pos))
-               //             ui->m_tblTimes->showRow(pos);
-
-                        type = (aCarData.OnPitRoad == true ? 3 : 0);
-
-                        ui->m_tblTimes->setItem(pos, 0, newItem(pos, 0, idxName, type));
-                        ui->m_tblTimes->setItem(pos, 2, newItem(pos, 2, QString::number(m_firstLapNo), type));
-                        ui->m_tblTimes->setItem(pos, 1, newItem(pos, 1, QString::number(aCarData.ClassPos), type));
-                        ui->m_tblTimes->setItem(pos, 5, newItem(pos, 5, QString::number(aCarData.EstTime), type));
                     }
                 }
             }
@@ -259,83 +347,6 @@ void Telemetry::addCarToPainter(int pos)
     if(m_mapCarEllipse[pos] != NULL) {
         m_mapCarEllipse[pos] = item;
         m_scene->addItem(m_mapCarEllipse[pos]);
-    }
-}
-
-void Telemetry::drawPAGDriver(const carData& aCarData)
-{
-    double yaw = g_carYaw.getFloat();
-    double dx = (g_carVelX.getFloat()) * sin(yaw);
-    double dy = (g_carVelY.getFloat()) * cos(yaw);
-    int x = m_pag->x() + (dx);
-    int y = m_pag->y() + (dy);
-
-    if(m_isFirstLap == true)  //dessin
-    {
-        if(QFile::exists(m_trackName + "_res.txt") == true) {
-            QFile aFile(m_trackName + "_res.txt");
-            QDataStream aStream(&aFile);
-            aStream >> m_trackPath;
-            m_trackLine->setPath(m_trackPath);
-            m_pag->setPos(x, y);
-            m_isFirstLap = false;
-        }
-        else
-        {
-            m_trackPath.lineTo(m_pag->pos());
-            m_trackLine->setPath(m_trackPath);
-
-            m_trackLine->setPen(QPen(Qt::gray, ui->m_graph->scene()->width() * 0.05));
-           // m_pag->setRect(x,y, ui->m_graph->scene()->width() * 0.05, ui->m_graph->scene()->height() * 0.05);
-            m_pag->setPos(x, y);
-        }
-    }
-    else if(m_isPathClosed == false)
-    {
-        m_trackPath.closeSubpath();
-        m_trackLine->setPath(m_trackPath);
-        m_isPathClosed = true;
-        ui->m_graph->fitInView( m_scene->sceneRect(), Qt::KeepAspectRatio );
-
-        if(QFile::exists(m_trackName + "_res.txt") == false) {
-            QFile aFile(m_trackName + "_res.txt");
-            QDataStream aStream(&aFile);
-            aStream << m_trackPath;
-        }
-
-    }
-    else
-    {
-        m_pag->setPen(QPen(QBrush(Qt::green), ui->m_graph->scene()->width() * 0.06, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
-        m_pag->setPos(m_trackPath.pointAtPercent(aCarData.lapDist));
-        m_pag->setRect(0, 0, ui->m_graph->scene()->width() * 0.06, ui->m_graph->scene()->width() * 0.06);
-        m_pagText->setPlainText(QString::number(aCarData.CarPos));
-    }
-
-}
-
-void Telemetry::drawOtherDrivers(const QString& strName, const carData& aCarData)
-{
-    if(m_isPathClosed == true) {
-        int pos = aCarData.CarPos;
-        if(m_mapCarEllipse[pos] == NULL)
-            addCarToPainter(pos);
-
-        Qt::GlobalColor color = Qt::blue;
-        if(strName.contains("Schaffner"    , Qt::CaseInsensitive))
-            color = Qt::magenta;
-        else if(strName.contains("Canuel"   ,Qt::CaseInsensitive))
-            color = Qt::red;
-        else if(strName.contains("Lalande"  ,Qt::CaseInsensitive))
-            color = Qt::white;
-        else if(strName.contains("Caouette"     ,Qt::CaseInsensitive))
-            color = Qt::blue;
-        else if(strName.contains("cyr"          ,Qt::CaseInsensitive))
-            color = Qt::black;
-
-        m_mapCarEllipse[pos]->setPen(QPen(color, ui->m_graph->scene()->width() * 0.06, Qt::SolidLine , Qt::RoundCap, Qt::RoundJoin));
-        m_mapCarEllipse[pos]->setPos(m_trackPath.pointAtPercent(aCarData.lapDist));
-        m_mapCarEllipse[pos]->setRect(0, 0, ui->m_graph->scene()->width() * 0.06, ui->m_graph->scene()->width() * 0.06);
     }
 }
 
@@ -468,11 +479,7 @@ void Telemetry::mapData()
         bFound = false;
         for(int j = 0; j < 64 && !bFound; j++)
         {
-          //  QString strFriend = isUserAFriend(0);
-          //  if(strFriend.isEmpty() == false)
-          //      m_mapTeamCarDataByPos[strFriend] = m_mapCarDataByPos[i];
-
-            if(tmpMapByEntry[j].CarPos == i+1){
+            if(tmpMapByEntry[j].CarPos == i){
                 bFound = true;
                 m_mapCarDataByPos[i] = tmpMapByEntry[j];
 
@@ -494,11 +501,11 @@ QString Telemetry::isUserAFriend(int entryId)
     QString idxName = getSessionVar(name);
     QString retName = "";
     if(idxName.isEmpty() == false) {
-        if((idxName.contains("Giguère"  , Qt::CaseInsensitive) ||
+        if((idxName.contains("Giguere"  , Qt::CaseInsensitive) ||
             idxName.contains("Schaffner"    , Qt::CaseInsensitive) ||
             idxName.contains("Canuel"   ,Qt::CaseInsensitive) ||
             idxName.contains("Lalande"  ,Qt::CaseInsensitive) ||
-            idxName.contains("Caouette"     ,Qt::CaseInsensitive) ||
+            idxName.contains("Ouelette"     ,Qt::CaseInsensitive) ||
             idxName.contains("cyr"          ,Qt::CaseInsensitive)))
         {
             retName = idxName;

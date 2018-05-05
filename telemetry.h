@@ -51,6 +51,19 @@ struct carData {
         TrackSurface = copy.TrackSurface;
         entry = copy.entry;
     }
+    bool operator==(const carData& rhs) const
+    {
+        return (ClassPos == rhs.ClassPos) &&
+               (EstTime == rhs.EstTime) &&
+                (F2Time == rhs.F2Time) &&
+                (Gear == rhs.Gear) &&
+                (LapNo == rhs.LapNo) &&
+                (lapDist == rhs.lapDist) &&
+                (OnPitRoad == rhs.OnPitRoad) &&
+                (CarPos == rhs.CarPos) &&
+                (TrackSurface == rhs.TrackSurface) &&
+                (entry == rhs.entry);
+    }
 };
 
 class Telemetry : public QMainWindow
@@ -71,6 +84,7 @@ private:
     bool m_isStarted;
 
     QMap<int, carData> m_mapCarDataByPos;
+    QMap<QString, carData> m_mapTeamCarDataByPos;
 
     QMap<int, qint64> m_mapDistSpdTimeStamp;
     QMap<int, qint64> m_mapDistTimeStamp;
@@ -78,7 +92,7 @@ private:
     union lapTime{float currentTime; float previousTime;};
 
     //maps by entrys
-    QMap<int, float> m_mapDistByEntry;
+    /*QMap<int, float> m_mapDistByEntry;
     QMap<int, lapTime> m_mapLapTimeByEntry;
     QMap<int, int> m_mapLapTimeType;
     QMap<int, float> m_mapLapBestTimeByEntry;
@@ -92,12 +106,13 @@ private:
     QMap<int, lapTime> m_mapLapTimeDelta3;
     QMap<int, int> m_mapLapTimeDeltaType1;
     QMap<int, int> m_mapLapTimeDeltaType2;
-    QMap<int, int> m_mapLapTimeDeltaType3;
+    QMap<int, int> m_mapLapTimeDeltaType3;*/
 
     //maps by pos
     QMap<int, int> m_mapLapTimeByPos;
 
     float m_trackLength;
+    QString m_trackName;
 
     QString getSessionVar(const QString& name);
 
@@ -121,6 +136,12 @@ private:
     void run();
 
     void addCarToPainter(int pos);
+    void calculateTrackLength();
+
+    void drawPAGDriver(const carData& aCarData);
+    void drawOtherDrivers(const QString& strName, const carData& aCarData);
+
+    QString isUserAFriend(int entryId);
 };
 
 #endif // TELEMETRY_H
