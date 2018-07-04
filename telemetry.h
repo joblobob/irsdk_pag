@@ -133,11 +133,13 @@ private:
     QGraphicsPathItem* m_trackLine;
     QPainterPath m_trackPath;
 
+
     void run();
 
     void addCarToPainter(int pos);
     void calculateTrackLength();
 
+    void drawCarsOnTrack();
     void drawPAGDriver(const carData& aCarData);
     void drawOtherDrivers(const QString& strName, const carData& aCarData);
 

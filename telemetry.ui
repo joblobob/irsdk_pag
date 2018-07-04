@@ -71,13 +71,17 @@ border:2px solid rgba(255,255,255,40);
       <property name="font">
        <font>
         <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="cursor">
        <cursorShape>PointingHandCursor</cursorShape>
       </property>
       <property name="styleSheet">
-       <string notr="true">QToolButton::checked{
+       <string notr="true">color:white;
+QToolButton::checked{
 background-color:rgba(0,0,0,0);
 }</string>
       </property>
@@ -109,10 +113,16 @@ background-color:rgba(0,0,0,0);
       <property name="font">
        <font>
         <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="cursor">
        <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:white;</string>
       </property>
       <property name="text">
        <string>Start</string>
