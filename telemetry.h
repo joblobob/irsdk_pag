@@ -27,6 +27,7 @@ struct carData {
     int CarPos;
     int TrackSurface;
     int entry;
+    QString userName;
     carData(){
         ClassPos = -1;
         EstTime = 0.0;
@@ -38,6 +39,7 @@ struct carData {
         CarPos = 0;
         TrackSurface = 0;
         entry = 0;
+        userName = "";
     }
     carData(const carData& copy){
         ClassPos = copy.ClassPos;
@@ -50,6 +52,7 @@ struct carData {
         CarPos = copy.CarPos;
         TrackSurface = copy.TrackSurface;
         entry = copy.entry;
+        userName = copy.userName;
     }
     bool operator==(const carData& rhs) const
     {
@@ -62,7 +65,8 @@ struct carData {
                 (OnPitRoad == rhs.OnPitRoad) &&
                 (CarPos == rhs.CarPos) &&
                 (TrackSurface == rhs.TrackSurface) &&
-                (entry == rhs.entry);
+                (entry == rhs.entry) &&
+                (userName == rhs.userName);
     }
 };
 
@@ -79,10 +83,19 @@ private slots:
 
     void on_m_btnFriends_clicked(bool checked);
 
+    void on_m_btnSaveTrack_clicked();
+
+    void on_m_btnLoadTrack_clicked();
+
+    void on_m_btnResetView_clicked();
+
+    void on_m_btnResetView_2_clicked();
+
 private:
     Ui::Telemetry *ui;
     bool m_isStarted;
 
+    QMap<int, carData> m_mapCarDataByIdx;
     QMap<int, carData> m_mapCarDataByPos;
     QMap<QString, carData> m_mapTeamCarDataByPos;
 
@@ -128,6 +141,7 @@ private:
     bool m_isPathClosed;
     bool m_isFirstLap;
     int m_firstLapNo;
+    bool m_startDrawing;
     QMap<int, QGraphicsEllipseItem*> m_mapCarEllipse;
 
     QGraphicsPathItem* m_trackLine;
@@ -142,6 +156,9 @@ private:
     void drawCarsOnTrack();
     void drawPAGDriver(const carData& aCarData);
     void drawOtherDrivers(const QString& strName, const carData& aCarData);
+
+    void saveTrackPath();
+    void loadTrackPath();
 
     QString isUserAFriend(int entryId);
 };
