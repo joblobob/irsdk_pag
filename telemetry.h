@@ -2,6 +2,7 @@
 #define TELEMETRY_H
 
 #include <QMainWindow>
+#include <QTimer>
 #include <QMap>
 #include <QTime>
 #include <QTableWidgetItem>
@@ -28,6 +29,7 @@ struct carData {
     int TrackSurface;
     int entry;
     QString userName;
+    bool isFriend;
     carData(){
         ClassPos = -1;
         EstTime = 0.0;
@@ -40,6 +42,7 @@ struct carData {
         TrackSurface = 0;
         entry = 0;
         userName = "";
+        isFriend = false;
     }
     carData(const carData& copy){
         ClassPos = copy.ClassPos;
@@ -53,6 +56,7 @@ struct carData {
         TrackSurface = copy.TrackSurface;
         entry = copy.entry;
         userName = copy.userName;
+        isFriend = copy.isFriend;
     }
     bool operator==(const carData& rhs) const
     {
@@ -66,7 +70,8 @@ struct carData {
                 (CarPos == rhs.CarPos) &&
                 (TrackSurface == rhs.TrackSurface) &&
                 (entry == rhs.entry) &&
-                (userName == rhs.userName);
+                (userName == rhs.userName) &&
+                (isFriend == rhs.isFriend);
     }
 };
 
@@ -91,11 +96,20 @@ private slots:
 
     void on_m_btnResetView_2_clicked();
 
+    void on_m_btnLeftTransform_clicked();
+
+    void on_m_btnRightTransform_clicked();
+
+    void on_refreshUserNames();
+
+    void on_refreshData();
+
 private:
     Ui::Telemetry *ui;
     bool m_isStarted;
 
     QMap<int, carData> m_mapCarDataByIdx;
+    QMap<int, QString> m_mapUserNameByIdx;
     QMap<int, carData> m_mapCarDataByPos;
     QMap<QString, carData> m_mapTeamCarDataByPos;
 
@@ -103,6 +117,10 @@ private:
     QMap<int, qint64> m_mapDistTimeStamp;
 
     union lapTime{float currentTime; float previousTime;};
+
+    QTimer m_userNamesTimer;
+
+    QTimer m_dataTimer;
 
     //maps by entrys
     /*QMap<int, float> m_mapDistByEntry;
@@ -126,41 +144,59 @@ private:
 
     float m_trackLength;
     QString m_trackName;
+    QString m_trackDisplayName;
+    QString m_trackConfigName;
+    QString m_trackPitName;
 
     QString getSessionVar(const QString& name);
 
-    QTableWidgetItem* newItem(int row, int column, const QString& name, int type = 0, bool isFriend = false);
+    QTableWidgetItem* updateItem(int row, int column, const QString& name, int type = 0, bool isFriend = false);
 
     void calculateLapTime(int idx, float dist);
     void mapData();
-    //double getX(double lon, int width);
-    //double getY(double lat, int height, int width);
+
     QGraphicsScene* m_scene;
     QGraphicsEllipseItem* m_pag;
     QGraphicsTextItem* m_pagText;
+
     bool m_isPathClosed;
+    bool m_isFirstPitLap;
+    bool m_isPathPitClosed;
     bool m_isFirstLap;
     int m_firstLapNo;
     bool m_startDrawing;
+    bool m_trackIsLoaded;
+    bool m_trackPitIsLoaded;
+    double m_firstPitPct;
     QMap<int, QGraphicsEllipseItem*> m_mapCarEllipse;
+    QMap<int, QGraphicsTextItem*> m_mapCarText;
 
     QGraphicsPathItem* m_trackLine;
     QPainterPath m_trackPath;
+
+    QGraphicsPathItem* m_pitLine;
+    QPainterPath m_pitPath;
 
 
     void run();
 
     void addCarToPainter(int pos);
     void calculateTrackLength();
+    bool checkForTrackMap(double x, double y);
+    bool checkForTrackPitMap(double x, double y);
 
     void drawCarsOnTrack();
     void drawPAGDriver(const carData& aCarData);
     void drawOtherDrivers(const QString& strName, const carData& aCarData);
 
     void saveTrackPath();
+    void saveTrackPitPath();
     void loadTrackPath();
+    void loadTrackPitPath();
 
-    QString isUserAFriend(int entryId);
+    QString convertTime(float secs);
+
+    bool isUserAFriend(int entryId);
 };
 
 #endif // TELEMETRY_H

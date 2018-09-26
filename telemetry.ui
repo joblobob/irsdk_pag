@@ -338,7 +338,7 @@ background-color:rgba(0,0,0,0);
 }</string>
       </property>
       <property name="text">
-       <string>Load track</string>
+       <string>Save pit</string>
       </property>
       <property name="checkable">
        <bool>false</bool>
@@ -406,6 +406,90 @@ background-color:rgba(0,0,0,0);
       </property>
       <property name="text">
        <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QToolButton" name="m_btnLeftTransform">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>20</width>
+        <height>25</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:white;
+QToolButton::checked{
+background-color:rgba(0,0,0,0);
+}</string>
+      </property>
+      <property name="text">
+       <string>&lt;-</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="autoRaise">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QToolButton" name="m_btnRightTransform">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>20</width>
+        <height>25</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:white;
+QToolButton::checked{
+background-color:rgba(0,0,0,0);
+}</string>
+      </property>
+      <property name="text">
+       <string>-&gt;</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="autoRaise">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
